@@ -1,8 +1,9 @@
-"""Trade goods (Amber, Iron, Cloth, Silver): start or unload transports when they're free.
+"""Trade goods (Amber, Iron, Cloth, Silver): start/unload transports and sell what's delivered.
 
-Opens the trade window from the top bar, visits every resource tab and presses the left
-action button only when it is the green "Start transport" / "Unload transport" button.
-The orange "Speed up the transport for N Coins" button is never clicked (it costs coins).
+Opens the trade window from the top bar, visits every resource tab and presses:
+- the left action button only when it is the green "Start transport" / "Unload transport" button;
+- "Sell now" only when it is bright green (there's something to sell; dark green means 0).
+Orange "Speed up for N Coins", "N Coins", ad buttons and "Upgrade" are never clicked.
 """
 import random
 import time
@@ -22,6 +23,8 @@ TOPBAR_Y = 62
 TABS = {"Amber": (110, 140), "Iron": (110, 232), "Cloth": (110, 320), "Silver": (110, 412)}
 ACTION_BUTTON = (447, 315)            # centre of the left action button
 ACTION_SAMPLES = [(x, y) for x in range(190, 710, 40) for y in (298, 334)]  # above/below the text
+SELL_BUTTON = (1022, 315)             # centre of "Sell now"
+SELL_SAMPLES = [(x, y) for x in range(770, 1290, 40) for y in (298, 334)]
 CLOSE_FROM_RIGHT = 29
 CLOSE_Y = 66
 
@@ -47,8 +50,13 @@ def action_ready(screen):
     return all(is_green(screen[y, x]) for x, y in ACTION_SAMPLES)
 
 
+def sell_ready(screen):
+    """True if "Sell now" is bright green, i.e. there are goods to sell."""
+    return all(is_green(screen[y, x]) for x, y in SELL_SAMPLES)
+
+
 def run(hwnd, stop_pressed=lambda: False):
-    """Visit every trade tab and start/unload what's possible. Returns the number of actions."""
+    """Visit every trade tab, start/unload transports and sell. Returns the number of actions."""
     _, _, width, _ = window.client_rect(hwnd)
     if not dialog_open(window.capture(hwnd)):
         window.click(hwnd, width - TOPBAR_ICON_FROM_RIGHT, TOPBAR_Y, jitter=2)
@@ -64,16 +72,20 @@ def run(hwnd, stop_pressed=lambda: False):
         window.click(hwnd, x, y, jitter=2)
         time.sleep(random.uniform(1.2, 1.8))
         # Unloading can be followed straight away by a new transport, so check a few times.
-        for _ in range(3):
+        for _ in range(4):
             screen = window.capture(hwnd)
-            if not dialog_open(screen) or not action_ready(screen):
+            if not dialog_open(screen):
                 break
-            print(f"  {name}: pressing the green transport button")
-            window.click(hwnd, *ACTION_BUTTON, jitter=8)
+            if action_ready(screen):
+                print(f"  {name}: pressing the green transport button")
+                window.click(hwnd, *ACTION_BUTTON, jitter=8)
+            elif sell_ready(screen):
+                print(f"  {name}: selling")
+                window.click(hwnd, *SELL_BUTTON, jitter=8)
+            else:
+                break
             actions += 1
             time.sleep(random.uniform(2.0, 3.0))
-        else:
-            continue
         if not dialog_open(screen):
             print(f"  {name}: something covered the trade window, stopping here")
             break

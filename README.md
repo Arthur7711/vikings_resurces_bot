@@ -23,12 +23,18 @@ python bot.py --dry
 This shows green circles where it would click, without clicking.
 
 ## 3. Run
+Transports and selling only, checked every 30 seconds:
+```
+python bot.py --transport
+```
+Transports and selling every 30 seconds, plus coins every 8-12 minutes:
 ```
 python bot.py
 ```
-Each round it scrolls to the top-left corner of the city, then sweeps it row by row: right, down, left, down, and so on. It detects the city edges by itself and clicks every match in every view, then prints how many it collected.
 
-After the sweep it opens the trade window from the top bar and checks Amber, Iron, Cloth and Silver. It presses the green **Start transport** or **Unload transport** button when one is available. It never presses the orange **Speed up for N Coins** button, "Sell now" or "Upgrade".
+For coins, it scrolls to the top-left corner of the city, then sweeps it row by row: right, down, left, down, and so on. It detects the city edges by itself and clicks every match in every view, then prints how many it collected.
+
+For transports, it opens the trade window from the top bar and checks Amber, Iron, Cloth and Silver. It presses the green **Start transport** or **Unload transport** button when one is available, and **Sell now** when there are goods to sell. It never presses the orange **Speed up** or **N Coins** buttons, the ad button or "Upgrade".
 
 Hold **F8** to stop. While it runs it takes over the mouse and brings the game to the front.
 

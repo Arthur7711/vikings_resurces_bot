@@ -1,9 +1,10 @@
 """Resource collector for Vikings at War (Google Play Games on PC).
 
-Every cycle it scrolls over the whole city, finds every image from templates/ and clicks it,
-then starts/unloads trade transports (Amber, Iron, Cloth, Silver), waits and starts again.
+Coins: scrolls over the whole city, finds every image from templates/ and clicks it (every 8-12 min).
+Transports: starts/unloads trade transports for Amber, Iron, Cloth, Silver (every 30 s).
 
-  python bot.py            run the bot
+  python bot.py --transport   transports only
+  python bot.py               transports + coins
   python bot.py --dry      only show what it would click on the current screen (no clicks)
   python bot.py --once     do one cycle and exit
 
@@ -30,6 +31,7 @@ STOP_KEY = 0x77           # F8
 PAN_X, PAN_Y = 450, 260   # camera step in pixels; keep below screen size so views overlap
 MOVE_DIFF = 12            # screen difference that counts as "the camera moved"
 MAX_STEPS = 12            # safety limit on steps per row / number of rows
+TRANSPORT_SECONDS = 30    # how often trade transports are checked
 
 
 def stop_pressed():
@@ -153,41 +155,64 @@ def run_cycle(hwnd, templates, dry):
     return clicked
 
 
+def wait(seconds):
+    """Sleep, but return False early if F8 is pressed."""
+    end = time.time() + seconds
+    while time.time() < end:
+        if stop_pressed():
+            return False
+        time.sleep(0.2)
+    return True
+
+
+def check_transports(hwnd):
+    print(time.strftime("[%H:%M:%S]"), "checking trade transports...")
+    t = trade.run(hwnd, stop_pressed)
+    print(f"  {t} transport/sell action(s)")
+
+
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--transport", action="store_true", help="only trade transports, every 30 s")
     parser.add_argument("--dry", action="store_true", help="show matches without clicking")
     parser.add_argument("--once", action="store_true", help="run a single cycle")
     args = parser.parse_args()
+
+    hwnd = window.find_window()
+    print("Hold F8 to stop.")
+
+    if args.transport:
+        while True:
+            check_transports(hwnd)
+            if args.once or not wait(TRANSPORT_SECONDS):
+                break
+        print("Stopped.")
+        return
 
     templates = load_templates()
     if not templates:
         raise SystemExit("No templates yet. Make some with: python capture_template.py 01_name")
     print("Templates:", ", ".join(name for name, _ in templates))
 
-    hwnd = window.find_window()
-    print("Hold F8 to stop.")
-    while True:
+    if args.dry:
         window.focus(hwnd)
-        print(time.strftime("[%H:%M:%S]"), "collecting...")
-        if args.dry:
-            n = run_cycle(hwnd, templates, dry=True)
-        else:
+        run_cycle(hwnd, templates, dry=True)
+        return
+
+    next_coins = 0
+    while True:
+        if time.time() >= next_coins:
+            print(time.strftime("[%H:%M:%S]"), "collecting coins...")
             n = sweep(hwnd, templates)
-        print(f"  done, collected {n} coin(s) this round")
-        if not args.dry and not stop_pressed():
-            print("  checking trade transports...")
-            t = trade.run(hwnd, stop_pressed)
-            print(f"  started/unloaded {t} transport(s)")
-        if args.once or args.dry or stop_pressed():
+            print(f"  done, collected {n} coin(s) this round")
+            next_coins = time.time() + random.uniform(*CYCLE_MINUTES) * 60
+            print(f"  next coin round in {(next_coins - time.time()) / 60:.1f} min")
+        if stop_pressed():
             break
-        wait = random.uniform(*CYCLE_MINUTES) * 60
-        print(f"  next cycle in {wait / 60:.1f} min")
-        end = time.time() + wait
-        while time.time() < end:
-            if stop_pressed():
-                print("Stopped.")
-                return
-            time.sleep(0.2)
+        check_transports(hwnd)
+        if args.once or not wait(TRANSPORT_SECONDS):
+            break
+    print("Stopped.")
 
 
 if __name__ == "__main__":
