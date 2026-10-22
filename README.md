@@ -23,11 +23,11 @@ python bot.py --dry
 This shows green circles where it would click, without clicking.
 
 ## 3. Run
-Transports and selling only, checked every 30 seconds:
+Transports and selling only, checked every minute:
 ```
 python bot.py --transport
 ```
-Transports and selling every 30 seconds, plus coins every 8-12 minutes:
+Transports and selling every minute, plus coins every hour:
 ```
 python bot.py
 ```

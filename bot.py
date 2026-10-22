@@ -1,7 +1,7 @@
 """Resource collector for Vikings at War (Google Play Games on PC).
 
-Coins: scrolls over the whole city, finds every image from templates/ and clicks it (every 8-12 min).
-Transports: starts/unloads trade transports for Amber, Iron, Cloth, Silver (every 30 s).
+Coins: scrolls over the whole city, finds every image from templates/ and clicks it (every hour).
+Transports: starts/unloads trade transports and sells Amber, Iron, Cloth, Silver (every minute).
 
   python bot.py --transport   transports only
   python bot.py               transports + coins
@@ -25,13 +25,13 @@ import window
 TEMPLATES = Path(__file__).parent / "templates"
 THRESHOLD = 0.8           # match confidence 0..1; raise if it clicks wrong things, lower if it misses
 SCALES = [s / 100 for s in range(70, 136, 5)]  # icons are bigger near the camera, smaller far away
-CYCLE_MINUTES = (8, 12)   # random wait between cycles
+CYCLE_MINUTES = (60, 60)  # wait between coin sweeps (min, max)
 MAX_PASSES = 10           # rescans per cycle (new icons may appear after a click)
 STOP_KEY = 0x77           # F8
 PAN_X, PAN_Y = 450, 260   # camera step in pixels; keep below screen size so views overlap
 MOVE_DIFF = 12            # screen difference that counts as "the camera moved"
 MAX_STEPS = 12            # safety limit on steps per row / number of rows
-TRANSPORT_SECONDS = 30    # how often trade transports are checked
+TRANSPORT_SECONDS = 60    # how often trade transports are checked
 
 
 def stop_pressed():
@@ -173,7 +173,7 @@ def check_transports(hwnd):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--transport", action="store_true", help="only trade transports, every 30 s")
+    parser.add_argument("--transport", action="store_true", help="only trade transports, every minute")
     parser.add_argument("--dry", action="store_true", help="show matches without clicking")
     parser.add_argument("--once", action="store_true", help="run a single cycle")
     args = parser.parse_args()
