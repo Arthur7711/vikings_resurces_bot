@@ -30,7 +30,7 @@ def run(hwnd):
     """Collect the daily reward if its window is open. Returns True if Collect was pressed."""
     collected = False
     for _ in range(3):
-        screen = window.capture(hwnd)
+        screen = window.capture_ref(hwnd)
         if find(screen, TITLE) is None:
             break
         button = find(screen, COLLECT)
@@ -38,7 +38,7 @@ def run(hwnd):
             print("  daily reward window is open but has no Collect button")
             break
         print("  collecting the daily reward")
-        window.click(hwnd, *button, jitter=8)
+        window.click(hwnd, *window.from_ref(hwnd, *button), jitter=8)
         collected = True
         time.sleep(random.uniform(2.5, 3.5))
     if collected:

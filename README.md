@@ -34,7 +34,7 @@ python bot.py
 
 For coins, it scrolls to the top-left corner of the city, then sweeps it row by row: right, down, left, down, and so on. It detects the city edges by itself and clicks every match in every view, then prints how many it collected.
 
-For transports, it opens the trade window from the top bar and checks Amber, Iron, Cloth and Silver. It presses the green **Start transport** or **Unload transport** button when one is available, and **Sell now** when there are goods to sell. It never presses the orange **Speed up** or **N Coins** buttons, the ad button or "Upgrade".
+For transports, it opens the trade window from the top bar and checks Amber, Iron, Cloth and Silver. It presses the green **Start transport** or **Unload transport** button when one is available, and **Sell now** when there are goods to sell. If the "Your boats have been seized by King Harald" message covers the panel, it double-clicks its gold icon to close it and then starts a new transport. It never presses the orange **Speed up** or **N Coins** buttons, the ad button or "Upgrade".
 
 In both modes it also checks every minute for the **daily reward** window, which pops up once a day, and presses **Collect** when it's there. It recognises the window by the images in `ui/daily_reward.png` and `ui/daily_collect.png`.
 

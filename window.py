@@ -4,6 +4,7 @@ import ctypes.wintypes as wt
 import random
 import time
 
+import cv2
 import mss
 import numpy as np
 
@@ -16,6 +17,7 @@ except Exception:
     user32.SetProcessDPIAware()
 
 WINDOW_TITLE = "Vikings at War"
+REF_WIDTH = 1310  # window width the trade/daily positions and ui/ images were taken at
 
 MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
@@ -101,3 +103,23 @@ def click(hwnd, x, y, jitter=3):
     user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
     time.sleep(random.uniform(0.04, 0.09))
     user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+
+
+def capture_ref(hwnd):
+    """Like capture(), but resized to REF_WIDTH wide so fixed positions work at any window size."""
+    screen = capture(hwnd)
+    height = round(screen.shape[0] * REF_WIDTH / screen.shape[1])
+    return cv2.resize(screen, (REF_WIDTH, height), interpolation=cv2.INTER_AREA)
+
+
+def from_ref(hwnd, x, y):
+    """Convert a point on a capture_ref() image to real client coordinates."""
+    scale = client_rect(hwnd)[2] / REF_WIDTH
+    return round(x * scale), round(y * scale)
+
+
+def double_click(hwnd, x, y, jitter=3):
+    """Two quick clicks at the same spot (client coords)."""
+    click(hwnd, x, y, jitter)
+    time.sleep(random.uniform(0.08, 0.15))
+    click(hwnd, x, y, jitter)
