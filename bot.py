@@ -2,6 +2,7 @@
 
 Coins: scrolls over the whole city, finds every image from templates/ and clicks it (every hour).
 Transports: starts/unloads trade transports and sells Amber, Iron, Cloth, Silver (every minute).
+Daily reward: presses Collect whenever the daily reward window pops up (checked every minute).
 
   python bot.py --transport   transports only
   python bot.py               transports + coins
@@ -19,6 +20,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+import daily
 import trade
 import window
 
@@ -31,7 +33,7 @@ STOP_KEY = 0x77           # F8
 PAN_X, PAN_Y = 450, 260   # camera step in pixels; keep below screen size so views overlap
 MOVE_DIFF = 12            # screen difference that counts as "the camera moved"
 MAX_STEPS = 12            # safety limit on steps per row / number of rows
-TRANSPORT_SECONDS = 60    # how often trade transports are checked
+TRANSPORT_SECONDS = 300    # how often trade transports are checked
 
 
 def stop_pressed():
@@ -183,6 +185,7 @@ def main():
 
     if args.transport:
         while True:
+            daily.run(hwnd)
             check_transports(hwnd)
             if args.once or not wait(TRANSPORT_SECONDS):
                 break
@@ -201,6 +204,7 @@ def main():
 
     next_coins = 0
     while True:
+        daily.run(hwnd)
         if time.time() >= next_coins:
             print(time.strftime("[%H:%M:%S]"), "collecting coins...")
             n = sweep(hwnd, templates)
