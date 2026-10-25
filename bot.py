@@ -33,7 +33,7 @@ STOP_KEY = 0x77           # F8
 PAN_X, PAN_Y = 450, 260   # camera step in pixels; keep below screen size so views overlap
 MOVE_DIFF = 12            # screen difference that counts as "the camera moved"
 MAX_STEPS = 12            # safety limit on steps per row / number of rows
-TRANSPORT_SECONDS = 300    # how often trade transports are checked
+TRANSPORT_SECONDS = 90    # how often trade transports are checked
 
 
 def stop_pressed():
